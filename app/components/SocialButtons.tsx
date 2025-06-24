@@ -7,7 +7,7 @@ export default function SocialButtons() {
   const links = [
     {
       label: 'Twitter',
-      href: 'https://x.com/',
+      href: 'https://x.com/magification_hl',
       image: '/assets/twitter.png',
     },
     {
