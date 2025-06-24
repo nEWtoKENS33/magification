@@ -36,17 +36,13 @@ export async function POST(req: NextRequest) {
     const maskFile = bufferToFile(maskBuffer, 'mask.png')
 
     // ✨ Prompt descriptivo mágico
-    const prompt = `Analyze the uploaded image and identify if there is a visible hand, a visible head, or a central character or object.
-
-– If a hand is present, add a detailed wizard staff held naturally in the hand.
-– If a head is visible, place a tall, pointed wizard hat on top of it, matching the angle and lighting.
-– Regardless of content, always surround the main subject with a subtle but clearly visible magical aura (glow, light particles, soft radiance).
-
-Match the style of the additions (staff, hat, aura) to the original image:
-– If the input is artwork or illustration, match the drawing style and texture.
-– If the input is a photo or realistic image, make all elements photorealistic and properly blended.
-
-Maintain the original pose, proportions, and background as much as possible. Avoid altering the subject’s identity or expression. Focus on enhancement, not transformation.`
+    const prompt = `Analyze the uploaded image.
+– If a hand is visible, add a wizard’s wand held naturally, with a glowing aura (green, yellow, red, or orange), radiant and subtly reflecting on nearby areas.
+– If a head is detected, add a wizard hat (tall, pointed, aligned with head angle) and a Dumbledore-style beard, adapted to the image style.
+– Always surround the main subject (person, creature, or object) with a magical aura—glow, particles, or sparkles—enhancing the mystical feel.
+– Keep the original background exactly as it is, without altering, replacing, or blurring it.
+– Match additions to image type: photorealistic for photos, illustrative for drawings or art.
+Preserve the subject’s pose, proportions, and identity. Enhance only; do not transform.`
 
     const response = await openai.images.edit({
       image: imageFile,
