@@ -36,36 +36,17 @@ export async function POST(req: NextRequest) {
     const maskFile = bufferToFile(maskBuffer, 'mask.png')
 
     // ✨ Prompt descriptivo mágico
-    const prompt = `Analyze the uploaded image and detect if there is a visible hand, head, and/or a clear main subject (person, creature, or character).
+    const prompt = `Analyze the uploaded image and identify if there is a visible hand, a visible head, or a central character or object.
 
-— If a hand is present, add a wizard’s wand (not a staff) being held naturally. The wand should emit a glowing aura in one of the following colors, chosen randomly or balanced by harmony with the original image:
+– If a hand is present, add a detailed wizard staff held naturally in the hand.
+– If a head is visible, place a tall, pointed wizard hat on top of it, matching the angle and lighting.
+– Regardless of content, always surround the main subject with a subtle but clearly visible magical aura (glow, light particles, soft radiance).
 
-Green (Slytherin style)
+Match the style of the additions (staff, hat, aura) to the original image:
+– If the input is artwork or illustration, match the drawing style and texture.
+– If the input is a photo or realistic image, make all elements photorealistic and properly blended.
 
-Yellow (Hufflepuff style)
-
-Red (Gryffindor style)
-
-Orange (Ravenclaw style)
-The aura must be radiant, magical, and clearly visible, surrounding the wand tip and subtly reflecting light on nearby areas.
-
-— If a head is present:
-
-Add a tall, pointed wizard hat that fits the head’s orientation, lighting, and scale.
-
-Also add a long wizard beard in the style of Dumbledore, matching the style and texture of the image (realistic or illustrated).
-
-— Always surround the main subject (character, person, creature, or object) with a soft magical aura, consisting of glows, sparkles, or particles, without replacing or altering the original background. The aura should complement the wand’s glow color if present.
-
-The background of the original image must remain intact.
-
-Important:
-
-If the uploaded image is a photo, all added elements (wand, aura, hat, beard) must look photorealistic and blend naturally.
-
-If the uploaded image is illustrated or stylized art, match the artistic style, colors, and brushwork.
-
-Preserve the subject’s original pose, proportions, and identity. Do not deform, obscure, or overly alter any facial or body features. Focus on enhancing the magical feel without compromising the source content.`
+Maintain the original pose, proportions, and background as much as possible. Avoid altering the subject’s identity or expression. Focus on enhancement, not transformation.`
 
     const response = await openai.images.edit({
       image: imageFile,
