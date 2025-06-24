@@ -1,17 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { OpenAI } from 'openai'
+import sharp from 'sharp'
 
-// Inicializar OpenAI
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
 })
 
-// Forzar uso de runtime Node.js (necesario para librerías como 'canvas' o 'sharp')
-export const config = {
-  runtime: 'nodejs',
-}
-
-// Utilidad para convertir Buffer a File
+// Convierte un Buffer en un objeto File válido para OpenAI
 function bufferToFile(buffer: Buffer, name: string, type: string = 'image/png'): File {
   return new File([buffer], name, { type })
 }
@@ -27,38 +22,38 @@ export async function POST(req: NextRequest) {
 
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
+
     const imageFile = bufferToFile(buffer, 'image.png')
 
-    // Crear una máscara blanca del mismo tamaño
-    const whiteCanvas = new OffscreenCanvas(512, 512)
-    const ctx = whiteCanvas.getContext('2d')!
-    ctx.fillStyle = 'white'
-    ctx.fillRect(0, 0, 512, 512)
+    // 🟣 Crear la máscara a partir del canal alfa con sharp
+    const maskBuffer = await sharp(buffer)
+      .ensureAlpha() // Asegura canal alfa
+      .extractChannel('alpha') // Extrae canal alfa
+      .toColourspace('b-w') // Convierte a blanco y negro
+      .png()
+      .toBuffer()
 
-    const maskBlob = await whiteCanvas.convertToBlob()
-    const maskArrayBuffer = await maskBlob.arrayBuffer()
-    const maskBuffer = Buffer.from(maskArrayBuffer)
     const maskFile = bufferToFile(maskBuffer, 'mask.png')
 
-    // Llamar a OpenAI para editar la imagen
+    // ✨ Prompt descriptivo mágico
+    const prompt = `Transform this character into a wizard. Add a magical pointed hat, glowing wooden wand, enchanted robes, and a swirling purple background full of arcane energy and spell effects. Keep the character’s body shape and position.`
+
     const response = await openai.images.edit({
       image: imageFile,
       mask: maskFile,
-      prompt:
-        'A wizardly transformation of the subject, wearing a magical robe, enchanted hat, and holding a glowing wand, all in front of a mystical purple background. Fantasy style.',
+      prompt,
       size: '512x512',
       response_format: 'url',
       n: 1,
     })
 
-    const imageUrl = response.data?.[0]?.url
-    if (!imageUrl) {
+    if (!response.data?.[0]?.url) {
       return NextResponse.json({ error: 'No image returned from OpenAI' }, { status: 500 })
     }
 
-    return NextResponse.json({ resultUrl: imageUrl })
+    return NextResponse.json({ resultUrl: response.data[0].url })
   } catch (err: any) {
-    console.error('❌ Error in /api/magify:', err)
-    return NextResponse.json({ error: err.message || 'Unknown error' }, { status: 500 })
+    console.error('❌ Error en /api/magify:', err)
+    return NextResponse.json({ error: err.message || 'Server error' }, { status: 500 })
   }
 }
