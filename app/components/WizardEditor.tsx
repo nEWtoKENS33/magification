@@ -14,7 +14,7 @@ export default function WizardEditor({ image }: { image: File }) {
     try {
       const res = await fetch('/api/magify', {
         method: 'POST',
-        body: e,
+        body: formData,
       })
 
       const data = await res.json()
