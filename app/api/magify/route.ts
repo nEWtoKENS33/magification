@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { OpenAI } from 'openai'
-import sharp from 'sharp'
 
+// Inicializar OpenAI
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
 })
 
-// Convierte un Buffer en un objeto File válido para OpenAI
+// Forzar uso de runtime Node.js (necesario para librerías como 'canvas' o 'sharp')
+export const config = {
+  runtime: 'nodejs',
+}
+
+// Utilidad para convertir Buffer a File
 function bufferToFile(buffer: Buffer, name: string, type: string = 'image/png'): File {
   return new File([buffer], name, { type })
 }
@@ -22,39 +27,38 @@ export async function POST(req: NextRequest) {
 
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
-
     const imageFile = bufferToFile(buffer, 'image.png')
 
-    // ⚙️ Crear la máscara basada en el canal alfa (transparencia) de la imagen
-    const maskBuffer = await sharp(buffer)
-      .ensureAlpha() // Garantiza que tenga canal alfa
-      .extractChannel('alpha') // Extrae el canal alfa
-      .toColourspace('b-w') // Lo convierte en blanco y negro
-      .toBuffer()
+    // Crear una máscara blanca del mismo tamaño
+    const whiteCanvas = new OffscreenCanvas(512, 512)
+    const ctx = whiteCanvas.getContext('2d')!
+    ctx.fillStyle = 'white'
+    ctx.fillRect(0, 0, 512, 512)
 
+    const maskBlob = await whiteCanvas.convertToBlob()
+    const maskArrayBuffer = await maskBlob.arrayBuffer()
+    const maskBuffer = Buffer.from(maskArrayBuffer)
     const maskFile = bufferToFile(maskBuffer, 'mask.png')
 
-    // 🎨 Llamada a OpenAI para editar la imagen
+    // Llamar a OpenAI para editar la imagen
     const response = await openai.images.edit({
       image: imageFile,
       mask: maskFile,
-      prompt: `A mystical frog wizard wearing a traditional green robe with wide sleeves, sitting cross-legged and holding a glowing wooden wand. It has a tall, pointed wizard hat adorned with subtle arcane symbols. The background should be a magical purple aura with swirling light particles and soft fantasy glow. Keep the character's pose and proportions, enhance with magical lighting and spell effects.
-`,
+      prompt:
+        'A wizardly transformation of the subject, wearing a magical robe, enchanted hat, and holding a glowing wand, all in front of a mystical purple background. Fantasy style.',
       size: '512x512',
       response_format: 'url',
       n: 1,
     })
 
-    if (!response.data || !response.data[0].url) {
+    const imageUrl = response.data?.[0]?.url
+    if (!imageUrl) {
       return NextResponse.json({ error: 'No image returned from OpenAI' }, { status: 500 })
     }
 
-    const imageUrl = response.data[0].url
-    console.log('✅ Imagen generada por OpenAI:', imageUrl)
-
     return NextResponse.json({ resultUrl: imageUrl })
   } catch (err: any) {
-    console.error('❌ Error en /api/magify:', err)
-    return NextResponse.json({ error: err.message || 'Server error' }, { status: 500 })
+    console.error('❌ Error in /api/magify:', err)
+    return NextResponse.json({ error: err.message || 'Unknown error' }, { status: 500 })
   }
 }
