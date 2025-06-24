@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
     const maskFile = bufferToFile(maskBuffer, 'mask.png')
 
     // ✨ Prompt descriptivo mágico
-    const prompt = `Transform this character into a wizard. Add a magical pointed hat, glowing wooden wand, enchanted robes, and a swirling purple background full of arcane energy and spell effects. Keep the character’s body shape and position.`
+    const prompt = `A mystical  wizard wearing a traditional robe with wide sleeves, sitting cross-legged and holding a glowing wooden wand. It has a tall, pointed wizard hat adorned with subtle arcane symbols. The background should be a magical purple aura with swirling light particles and soft fantasy glow. Keep the character's pose and proportions, enhance with magical lighting and spell effects.`
 
     const response = await openai.images.edit({
       image: imageFile,
