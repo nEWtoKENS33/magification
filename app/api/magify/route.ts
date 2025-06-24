@@ -36,7 +36,17 @@ export async function POST(req: NextRequest) {
     const maskFile = bufferToFile(maskBuffer, 'mask.png')
 
     // ✨ Prompt descriptivo mágico
-    const prompt = `A mystical  wizard wearing a traditional robe with wide sleeves, sitting cross-legged and holding a glowing wooden wand. It has a tall, pointed wizard hat adorned with subtle arcane symbols. The background should be a magical purple aura with swirling light particles and soft fantasy glow. Keep the character's pose and proportions, enhance with magical lighting and spell effects.`
+    const prompt = `Analyze the uploaded image and identify if there is a visible hand, a visible head, or a central character or object.
+
+– If a hand is present, add a detailed wizard staff held naturally in the hand.
+– If a head is visible, place a tall, pointed wizard hat on top of it, matching the angle and lighting.
+– Regardless of content, always surround the main subject with a subtle but clearly visible magical aura (glow, light particles, soft radiance).
+
+Match the style of the additions (staff, hat, aura) to the original image:
+– If the input is artwork or illustration, match the drawing style and texture.
+– If the input is a photo or realistic image, make all elements photorealistic and properly blended.
+
+Maintain the original pose, proportions, and background as much as possible. Avoid altering the subject’s identity or expression. Focus on enhancement, not transformation.`
 
     const response = await openai.images.edit({
       image: imageFile,
