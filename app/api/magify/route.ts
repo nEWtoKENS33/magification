@@ -25,43 +25,33 @@ export async function POST(req: NextRequest) {
 
     const imageFile = bufferToFile(buffer, 'image.png')
 
-    // 🟣 Crear la máscara a partir del canal alfa con sharp
+    // ⚙️ Crear la máscara basada en el canal alfa (transparencia) de la imagen
     const maskBuffer = await sharp(buffer)
-      .ensureAlpha() // Asegura canal alfa
-      .extractChannel('alpha') // Extrae canal alfa
-      .toColourspace('b-w') // Convierte a blanco y negro
-      .png()
+      .ensureAlpha() // Garantiza que tenga canal alfa
+      .extractChannel('alpha') // Extrae el canal alfa
+      .toColourspace('b-w') // Lo convierte en blanco y negro
       .toBuffer()
 
     const maskFile = bufferToFile(maskBuffer, 'mask.png')
 
-    // ✨ Prompt descriptivo mágico
-    const prompt = `Analyze the uploaded image and detect if there is a visible hand, head, or a central character or object.
-– If a hand is present, add a detailed wizard’s wand (not a staff) held naturally.
-– If a head is visible, place a tall, pointed wizard hat on it, matching angle and lighting.
-– If a face is clearly recognized, also add a long, thick, flowing wizard-style beard, adapted to the image’s perspective and style.
-– Always surround the main subject with a subtle but clearly visible magical aura (glow, light particles, soft radiance).
-
-Match all added elements (wand, hat, beard, aura) to the original image:
-– If the input is artwork or illustration, replicate its drawing style and texture.
-– If the input is a photo or realistic image, make all additions photorealistic and seamlessly blended.
-
-Preserve the original pose, proportions, facial features, and background. Avoid altering the subject’s identity or expression. The goal is magical enhancement, not transformation.`
-
+    // 🎨 Llamada a OpenAI para editar la imagen
     const response = await openai.images.edit({
       image: imageFile,
       mask: maskFile,
-      prompt,
+      prompt: `A cartoon-style character with a unique shape and expressive face, wearing a sweater, is standing on the surface of the Moon. Starry night sky in the background and visible craters on the lunar ground. The character is holding a glowing tablet or object with a symbol on it (such as a crypto logo). Around the character, add futuristic user interface elements like floating charts, stats, or status bars. The mood is calm but powerful, as if showcasing innovation or progress in a sci-fi crypto world.`,
       size: '512x512',
       response_format: 'url',
       n: 1,
     })
 
-    if (!response.data?.[0]?.url) {
+    if (!response.data || !response.data[0].url) {
       return NextResponse.json({ error: 'No image returned from OpenAI' }, { status: 500 })
     }
 
-    return NextResponse.json({ resultUrl: response.data[0].url })
+    const imageUrl = response.data[0].url
+    console.log('✅ Imagen generada por OpenAI:', imageUrl)
+
+    return NextResponse.json({ resultUrl: imageUrl })
   } catch (err: any) {
     console.error('❌ Error en /api/magify:', err)
     return NextResponse.json({ error: err.message || 'Server error' }, { status: 500 })
