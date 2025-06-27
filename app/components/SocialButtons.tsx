@@ -7,18 +7,18 @@ export default function SocialButtons() {
   const links = [
     {
       label: 'Twitter',
-      href: 'https://x.com/magification_hl',
+      href: 'https://x.com/',
       image: '/assets/twitter.png',
     },
     {
       label: 'Chart',
-      href: 'https://mana.win/app/',
-      image: '/assets/chart.png',
+      href: 'https://dexscreener.com',
+      image: '/assets/chart2.png',
     },
     {
       label: 'Buy Here',
-      href: 'https://t.me/HyperEVMSniperBot',
-      image: '/assets/buy.png',
+      href: 'https://moonshot.money',
+      image: '/assets/buy2.png',
     },
   ]
 
